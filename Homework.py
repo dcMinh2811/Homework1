@@ -4,6 +4,7 @@ class Book:
         self.title = title
         self.author = author
         self.id_number = id_number
+        self.waitingQueue = Queue()
     
     def get_book(self):
         book_info = (self.title, self.author, self.id_number)
@@ -49,7 +50,6 @@ class Library:
     def __init__(self):
             self.availableBooks = Stack()
             self.borrowedBooks = []
-            self.waitingQueue = Queue()
 
     def add_book(self, book):
         self.availableBooks.push(book)
@@ -60,14 +60,17 @@ class Library:
                 self.borrowedBooks.append({book_title: student.name})
                 self.availableBooks.pop(book)
             else:
-                self.waitingQueue.push({book_title: student.name})
+                for book in self.borrowedBooks:
+                    for key in book.keys():
+                        if key == book_title:
+                                Book(key,"","").waitingQueue.push(student)
             
     def return_book(self, book):
         for item in self.borrowedBooks:
             if book.title in item:
-                self.availableBooks.push(item.key())
+                self.availableBooks.push(book)
                 self.borrowedBooks.remove(item)
-                nextRequest = self.waitingQueue.pop()
+                nextRequest = book.waitingQueue.pop()
                 for key, value in nextRequest:
                     self.request_book(Student(value,"",""), key)
 
@@ -87,5 +90,12 @@ library.request_book(student2, "Doraemon Tập 1") # Should go to waiting list
 
 
 print("Available Books:", [book.title for book in library.availableBooks.stack])
-print("Waiting Queue:", library.waitingQueue.queue)
+
+for book in [book1, book2]:
+    name = [student.name for student in book.waitingQueue.queue]
+    if name:
+        print(f"{book.title} queue: {name}")
+    else:
+        print(f"{book.title} queue: Empty")
+
 print("Borrowed Books:", library.borrowedBooks)
