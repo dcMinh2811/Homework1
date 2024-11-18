@@ -7,9 +7,8 @@ class Book:
         self.waitingQueue = Queue()
     
     def get_book(self):
-        book_info = (self.title, self.author, self.id_number)
+        book_info = (self.title, self.author, self.id_number,self.waitingQueue)
         return book_info
-
 
 class Student:
     def __init__(self, name, class_number, student_id):
@@ -48,31 +47,31 @@ class Queue:
 #Library management system
 class Library:
     def __init__(self):
+            self.allBooks = Stack().stack.copy()
             self.availableBooks = Stack()
             self.borrowedBooks = []
 
     def add_book(self, book):
         self.availableBooks.push(book)
+        self.allBooks = self.availableBooks.stack.copy()
         
     def request_book(self, student, book_title):
-        for book in self.availableBooks.stack:
-            if book.title == book_title:
-                self.borrowedBooks.append({book_title: student.name})
-                self.availableBooks.pop(book)
-            else:
-                for book in self.borrowedBooks:
-                    for key in book.keys():
-                        if key == book_title:
-                                Book(key,"","").waitingQueue.push(student)
+        for book in self.allBooks:
+            if book.get_book()[0] == book_title:
+                if book in self.availableBooks.stack:
+                        self.borrowedBooks.append({book_title: student.name})
+                        self.availableBooks.pop(book)
+                else:
+                    book.get_book()[-1].push(student.get_student()[0])
             
     def return_book(self, book):
         for item in self.borrowedBooks:
-            if book.title in item:
+            if book.get_book()[0] in item:
                 self.availableBooks.push(book)
                 self.borrowedBooks.remove(item)
-                nextRequest = book.waitingQueue.pop()
-                for key, value in nextRequest:
-                    self.request_book(Student(value,"",""), key)
+                nextRequest = book.get_book()[-1].pop()
+                requestedBook = book.get_book()[0]
+                self.request_book(Student(nextRequest,"",""), requestedBook)
 
         
 # Create some books
@@ -87,15 +86,13 @@ library.add_book(book1)
 library.add_book(book2)
 library.request_book(student1, "Doraemon Tập 1")
 library.request_book(student2, "Doraemon Tập 1") # Should go to waiting list
+print("All Books:",[book.get_book() for book in library.allBooks][0][0])
 
+for book in library.allBooks:
+    title = book.get_book()[0]
+    queue = book.get_book()[-1].queue
+    print(f'"{title}" queue: {queue}')
 
 print("Available Books:", [book.title for book in library.availableBooks.stack])
-
-for book in [book1, book2]:
-    name = [student.name for student in book.waitingQueue.queue]
-    if name:
-        print(f"{book.title} queue: {name}")
-    else:
-        print(f"{book.title} queue: Empty")
 
 print("Borrowed Books:", library.borrowedBooks)
