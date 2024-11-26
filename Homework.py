@@ -1,23 +1,19 @@
 #Basic classes
 class Book:
-    def __init__(self, title, author, id_number):
+    def __init__(self, title):
         self.title = title
-        self.author = author
-        self.id_number = id_number
         self.waitingQueue = Queue()
     
     def get_book(self):
-        book_info = (self.title, self.author, self.id_number,self.waitingQueue)
+        book_info = (self.title,self.waitingQueue)
         return book_info
 
 class Student:
-    def __init__(self, name, class_number, student_id):
+    def __init__(self, name):
         self.name = name
-        self.class_number = class_number
-        self.student_id = student_id
     
     def get_student(self):
-        student_info = (self.name, self.class_number, self.student_id)
+        student_info = (self.name)
         return student_info
 
 class Stack:
@@ -26,7 +22,7 @@ class Stack:
     
     def push(self, item):
         if item not in self.stack:
-            self.stack.insert(-1, item)
+            self.stack.append(item)
 
     def pop(self, item):
         if item in self.stack:
@@ -47,52 +43,114 @@ class Queue:
 #Library management system
 class Library:
     def __init__(self):
-            self.allBooks = Stack().stack.copy()
+            self.allBooks = {}
             self.availableBooks = Stack()
             self.borrowedBooks = []
 
     def add_book(self, book):
         self.availableBooks.push(book)
-        self.allBooks = self.availableBooks.stack.copy()
+        self.allBooks[book.title] = book
         
     def request_book(self, student, book_title):
-        for book in self.allBooks:
-            if book.get_book()[0] == book_title:
-                if book in self.availableBooks.stack:
-                        self.borrowedBooks.append({book_title: student.name})
-                        self.availableBooks.pop(book)
-                else:
-                    book.get_book()[-1].push(student.get_student()[0])
+        if book_title in self.allBooks:
+            book = self.allBooks[book_title]
+            if book in self.availableBooks.stack:
+                    self.borrowedBooks.append({book_title: student.name})
+                    self.availableBooks.pop(book)
+            else:
+                book.waitingQueue.push(student.name)
             
     def return_book(self, book):
         for item in self.borrowedBooks:
-            if book.get_book()[0] in item:
+            if book.title in item:
                 self.availableBooks.push(book)
                 self.borrowedBooks.remove(item)
-                nextRequest = book.get_book()[-1].pop()
-                requestedBook = book.get_book()[0]
+                nextRequest = book.waitingQueue.pop()
+                requestedBook = book.title
                 self.request_book(Student(nextRequest,"",""), requestedBook)
 
-        
-# Create some books
-book1 = Book("Doraemon Tập 1", "Fujiko F. Fujio", "B001")
-book2 = Book("Harry Potter Tập 1", "J.K. Rowling", "B002")
-# Create students
-student1 = Student("Minh", "7A", "S001")
-student2 = Student("Linh", "7B", "S002")
-# Test your library system
+
+
+# Interactive system
+existingBooks = []
+existingStudents = []
 library = Library()
-library.add_book(book1)
-library.add_book(book2)
-library.request_book(student1, "Doraemon Tập 1")
-library.request_book(student2, "Doraemon Tập 1") # Should go to waiting list
-print("All Books:",[book.get_book() for book in library.allBooks][0][0])
 
-for book in library.allBooks:
-    title = book.get_book()[0]
-    queue = book.get_book()[-1].queue
-    print(f'"{title}" queue: {queue}')
+while True:
+    name = input("What's your name? ").strip().lower()
+    print("\n~What do you want to do?\nPick one of those actions: Create book/Add book/Request book/Return book(if you had borrowed it before)/Cancel~")
+    action = input("Action: ").strip().lower()
 
-print("Available Books:", [book.title for book in library.availableBooks.stack])
+    def action_CreateBook(book):
+        Book(book)
 
-print("Borrowed Books:", library.borrowedBooks)
+    def action_AddBook(book):
+        library.add_book(book)
+
+    def action_RequestBook(student, book_title):
+        library.request_book(student, book_title)
+
+    def action_ReturnBook(book):
+        library.return_book(book)
+
+    actions = ["create book", "add book", "request book", "return book", "cancel"]
+
+    def register_name(name):
+        for student in existingStudents:
+            if student.name == name:
+                return student
+        student = Student(name)
+        existingStudents.append(student)
+        return student
+
+    if action in actions:
+        print("Enter required information:")
+        if action == actions[0]:
+            book_title = input("Book title: ").strip().lower()
+            book = Book(book_title)
+            existingBooks.append(book)
+        elif action == actions[1]:
+            if len(existingBooks) > 0:
+                print("Choose one of the following books to add:")
+                for book in existingBooks:
+                    print(book.title)
+                chosenBook = input("Chosen book: ").strip().lower()
+                for book in existingBooks:
+                    if book.title == chosenBook:
+                        library.add_book(book)
+                        break
+                else:
+                    print("Book not found")
+            else:
+                print("No books to add. Try to create a book first")
+        elif action == actions[2]:
+            book_title = input("Book title: ").strip().lower()
+            library.request_book(register_name(name), book_title)
+        elif action == actions[3]:
+            if len(library.allBooks) > 0:
+                print("Choose one of the following books to return:")
+                for book in library.allBooks.values():
+                    print(book.title)
+                chosenBook = input("Chosen book: ").strip().lower()
+                if chosenBook in library.allBooks:
+                    library.return_book(library.allBooks[chosenBook])
+                else:
+                    print("Book not found")
+            else:
+                print("No books in the library")
+        else:
+            print("Canceling")
+            break
+    else:
+        print("Unknown action")
+
+    # Output
+    print("Existing books:", [book.title for book in existingBooks])
+    print("All Books:", [title for title in library.allBooks])
+
+    for title in library.allBooks:
+        queue = library.allBooks[title].waitingQueue.queue
+        print(f'"{title}" queue: {queue}')
+
+    print("Available Books:", [book.title for book in library.availableBooks.stack])
+    print("Borrowed Books:", library.borrowedBooks)
