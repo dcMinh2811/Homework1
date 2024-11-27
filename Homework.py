@@ -119,25 +119,23 @@ while True:
                     if book.title == chosenBook:
                         library.add_book(book)
                         break
-                else:
-                    print("Book not found")
             else:
                 print("No books to add. Try to create a book first")
         elif action == actions[2]:
-            book_title = input("Book title: ").strip().lower()
-            library.request_book(register_name(name), book_title)
-        elif action == actions[3]:
             if len(library.allBooks) > 0:
-                print("Choose one of the following books to return:")
-                for book in library.allBooks.values():
-                    print(book.title)
-                chosenBook = input("Chosen book: ").strip().lower()
-                if chosenBook in library.allBooks:
-                    library.return_book(library.allBooks[chosenBook])
-                else:
-                    print("Book not found")
+                book_title = input("Book title: ").strip().lower()
+                library.request_book(register_name(name), book_title)
             else:
-                print("No books in the library")
+                print("No book to request")
+        elif action == actions[3]:
+            print("Choose one of the following books to return:")
+            for book in library.allBooks.values():
+                print(book.title)
+            chosenBook = input("Chosen book: ").strip().lower()
+            if chosenBook not in library.allBooks:
+                library.return_book(library.allBooks[chosenBook])
+            else:
+                print("Incorrect book.")
         else:
             print("Canceling")
             break
