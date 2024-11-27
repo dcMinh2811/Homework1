@@ -120,7 +120,7 @@ while True:
                 print(book.title)
             chosenBook = input("Chosen book: ").strip().lower()
             if chosenBook not in library.allBooks:
-                library.return_book(library.allBooks[chosenBook])
+                library.return_book(Book(chosenBook))
             else:
                 print("Incorrect book.")
         else:
