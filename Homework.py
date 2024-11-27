@@ -80,19 +80,6 @@ while True:
     name = input("What's your name? ").strip().lower()
     print("\n~What do you want to do?\nPick one of those actions: Create book/Add book/Request book/Return book(if you had borrowed it before)/Cancel~")
     action = input("Action: ").strip().lower()
-
-    def action_CreateBook(book):
-        Book(book)
-
-    def action_AddBook(book):
-        library.add_book(book)
-
-    def action_RequestBook(student, book_title):
-        library.request_book(student, book_title)
-
-    def action_ReturnBook(book):
-        library.return_book(book)
-
     actions = ["create book", "add book", "request book", "return book", "cancel"]
 
     def register_name(name):
